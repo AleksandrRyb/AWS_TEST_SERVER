@@ -5,6 +5,7 @@ import { AuthValidatorService } from './auth-validator.service';
 import { log } from '@helper/logger';
 import { isObjectEmpty } from '@helper/object/isEmpty';
 import { APIGatewayProxyResult } from 'aws-lambda';
+import { generateToken } from '@helper/auth/generate-token';
 
 export class SignupService {
   static async signup(body: { email: string; password: string }): Promise<APIGatewayProxyResult> {
@@ -56,6 +57,56 @@ export class SignupService {
       return {
         statusCode: 401,
         body: JSON.stringify({ message: 'Error creating user', error }),
+      };
+    }
+  }
+
+  static async signIn(email: string, password: string): Promise<APIGatewayProxyResult> {
+    const emailValidationResult = AuthValidatorService.validateEmail(email);
+
+    if (emailValidationResult.error) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ errors: { email: emailValidationResult.error.message } }),
+      };
+    }
+
+    const getItemCommand = new GetItemCommand({
+      TableName: 'Users',
+      Key: {
+        email: { S: email },
+      },
+    });
+
+    try {
+      const { Item: user } = await dynamoDbClient.send(getItemCommand);
+
+      if (!user) {
+        return {
+          statusCode: 401,
+          body: JSON.stringify({ message: 'User not found' }),
+        };
+      }
+
+      const hashedPassword = hashPassword(password);
+
+      if (user.hashedPasswords.S !== hashedPassword) {
+        return {
+          statusCode: 401,
+          body: JSON.stringify({ message: 'Incorrect password' }),
+        };
+      }
+
+      const token = generateToken(email);
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Authentication successful', token }),
+      };
+    } catch (error) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: 'Authentication failed', error }),
       };
     }
   }
