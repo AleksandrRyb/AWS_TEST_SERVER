@@ -1,13 +1,13 @@
 import { dynamoDbClient } from '@services/dynamodb';
 import { PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { hashPassword } from '@helper/auth/hash-password';
+import * as bcrypt from 'bcryptjs';
 import { AuthValidatorService } from './auth-validator.service';
 import { log } from '@helper/logger';
 import { isObjectEmpty } from '@helper/object/isEmpty';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { generateToken } from '@helper/auth/generate-token';
 
-export class SignupService {
+export class AuthService {
   static async signup(body: { email: string; password: string }): Promise<APIGatewayProxyResult> {
     const errors = AuthValidatorService.validateSignup(body);
 
@@ -25,7 +25,8 @@ export class SignupService {
       },
     });
 
-    const hashedPassword = hashPassword(body.password);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(body.password, saltRounds);
 
     const putItemCommand = new PutItemCommand({
       TableName: 'Users',
@@ -61,8 +62,8 @@ export class SignupService {
     }
   }
 
-  static async signIn(email: string, password: string): Promise<APIGatewayProxyResult> {
-    const emailValidationResult = AuthValidatorService.validateEmail(email);
+  static async signin(body: { email: string; password: string }): Promise<APIGatewayProxyResult> {
+    const emailValidationResult = AuthValidatorService.validateEmail(body.email);
 
     if (emailValidationResult.error) {
       return {
@@ -74,7 +75,7 @@ export class SignupService {
     const getItemCommand = new GetItemCommand({
       TableName: 'Users',
       Key: {
-        email: { S: email },
+        email: { S: body.email },
       },
     });
 
@@ -88,16 +89,16 @@ export class SignupService {
         };
       }
 
-      const hashedPassword = hashPassword(password);
+      const isPasswordValid = await bcrypt.compare(body.password, user.hashedPasswords.S as string);
 
-      if (user.hashedPasswords.S !== hashedPassword) {
+      if (!isPasswordValid) {
         return {
           statusCode: 401,
           body: JSON.stringify({ message: 'Incorrect password' }),
         };
       }
 
-      const token = generateToken(email);
+      const token = generateToken(body.email);
 
       return {
         statusCode: 200,

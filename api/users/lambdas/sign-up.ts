@@ -1,8 +1,8 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { SignupService } from '../services/users.service';
+import { AuthService } from '../services/auth.service';
 
 export const handler = (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   const requestBody = JSON.parse(event.body || '');
 
-  return SignupService.signup(requestBody);
+  return AuthService.signup(requestBody);
 };

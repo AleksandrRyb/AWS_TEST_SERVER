@@ -14,6 +14,18 @@ export const usersConfig: AWSPartitial = {
         },
       ],
     },
+    signin: {
+      handler: 'api/users/lambdas/sign-in.handler',
+      memorySize: 128,
+      events: [
+        {
+          httpApi: {
+            path: '/signin',
+            method: 'post',
+          },
+        },
+      ],
+    },
   },
   resources: {
     Resources: {
