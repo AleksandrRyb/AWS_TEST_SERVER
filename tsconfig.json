@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "preserveConstEnums": true,
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "target": "ES2021",
+    "outDir": ".build",
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "lib": ["ES2021"],
+    "rootDir": "./",
+    "baseUrl": ".",
+    "paths": {
+      "@models/*": ["./models/*"],
+      "@services/*": ["./services/*"],
+      "@helper/*": ["./helper/*"],
+      "@interfaces/*": ["./interfaces/*"]
+    }
+  },
+  "exclude": ["node_modules", "coverage", ".build", ".esbuild", ".git"]
+}
