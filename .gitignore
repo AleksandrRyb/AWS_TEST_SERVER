@@ -8,6 +8,7 @@ jspm_packages
 **/.webpack
 .tmp
 .scannerwork/
+env.yml
 
 # Serverless directories
 .serverless/
