@@ -107,6 +107,7 @@
     "crypto-js": "^4.1.1",
     "dotenv": "16.0.0",
     "joi": "^17.10.1",
+    "jsonwebtoken": "^9.0.2",
     "reflect-metadata": "^0.1.13",
     "serverless-dynamodb": "^0.2.43",
     "source-map-support": "^0.5.21",
