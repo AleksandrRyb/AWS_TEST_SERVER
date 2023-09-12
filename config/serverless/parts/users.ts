@@ -1,6 +1,41 @@
 import { AWSPartitial } from '../types';
 
 export const usersConfig: AWSPartitial = {
+  provider: {
+    environment: {
+      RANDOM: 'aefaefe',
+    },
+    httpApi: {
+      authorizers: {
+        customAuthorizer: {
+          type: 'request',
+          functionName: 'customAuthorizer',
+        },
+      },
+    },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: 'Allow',
+            Action: [
+              'dynamodb:DescribeTable',
+              'dynamodb:Query',
+              'dynamodb:Scan',
+              'dynamodb:GetItem',
+              'dynamodb:PutItem',
+              'dynamodb:DeleteItem',
+              'dynamodb:UpdateItem',
+              'dynamodb:BatchGetItem',
+              'dynamodb:BatchWriteItem',
+            ],
+            Resource: 'arn:aws:dynamodb:*:*:table/Users',
+          },
+        ],
+      },
+    },
+  },
+
   functions: {
     signup: {
       handler: 'api/users/lambdas/sign-up.handler',
@@ -25,6 +60,26 @@ export const usersConfig: AWSPartitial = {
           },
         },
       ],
+    },
+    test: {
+      handler: 'api/users/lambdas/test-authorizer.handler',
+      memorySize: 128,
+      events: [
+        {
+          httpApi: {
+            path: '/test',
+            method: 'post',
+            authorizer: {
+              name: 'customAuthorizer',
+            },
+          },
+        },
+      ],
+    },
+    customAuthorizer: {
+      handler: 'api/users/lambdas/authorizer-func.handler',
+      description: '${self:service} authorizer',
+      memorySize: 128,
     },
   },
   resources: {

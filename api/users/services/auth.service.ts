@@ -2,7 +2,6 @@ import { dynamoDbClient } from '@services/dynamodb';
 import { PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import * as bcrypt from 'bcryptjs';
 import { AuthValidatorService } from './auth-validator.service';
-import { log } from '@helper/logger';
 import { isObjectEmpty } from '@helper/object/isEmpty';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { generateToken } from '@helper/auth/generate-token';
@@ -38,8 +37,6 @@ export class AuthService {
 
     try {
       const { Item: isUserExisted } = await dynamoDbClient.send(getItemCommand);
-
-      log(isUserExisted);
 
       if (isUserExisted) {
         return {
@@ -98,7 +95,7 @@ export class AuthService {
         };
       }
 
-      const token = generateToken(body.email);
+      const token = generateToken({ email: body.email });
 
       return {
         statusCode: 200,
