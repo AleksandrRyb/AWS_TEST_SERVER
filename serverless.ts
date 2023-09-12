@@ -53,6 +53,10 @@ const masterConfig: AWS = {
     patterns: ['bin/*', '.env'],
   },
   custom: {
+    s3: {
+      host: 'localhost',
+      directory: '/tmp',
+    },
     esbuild: {
       bundle: true,
       minify: true,

@@ -1,7 +1,8 @@
 import * as jwt from 'jsonwebtoken';
 
-const tokenExpiresIn = '1h';
-
-export const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: tokenExpiresIn });
+export const generateToken = (data: { [key: string]: any }): string => {
+  return jwt.sign(data, process.env.JWT_SECRET as jwt.Secret, {
+    expiresIn: process.env.JWT_EXPIRATION as string,
+    algorithm: process.env.JWT_ALGORITHM as jwt.Algorithm,
+  });
 };
