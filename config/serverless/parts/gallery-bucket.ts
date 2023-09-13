@@ -34,18 +34,6 @@ export const galleryBucketConfig: AWSPartitial = {
     //     },
     //   ],
     // },
-    findImage: {
-      handler: 'api/gallery/lamdas/find-image.handler',
-      memorySize: 128,
-      events: [
-        {
-          httpApi: {
-            path: '/signup',
-            method: 'get',
-          },
-        },
-      ],
-    },
   },
   resources: {
     Resources: {
