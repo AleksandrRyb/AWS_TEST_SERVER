@@ -3,6 +3,7 @@ import type { AWS } from '@serverless/typescript';
 import { usersConfig } from './config/serverless/parts/users';
 import { getStage, joinParts } from './config/serverless/utils';
 import { imageConfig } from './config/serverless/parts/image';
+import { imagesBucketConfig } from './config/serverless/parts/images-bucket';
 
 const CLIENT = '${param:CLIENT}';
 const SERVICE_NAME = `template-flo-sls`;
@@ -155,4 +156,4 @@ const masterConfig: AWS = {
   ],
 };
 
-module.exports = joinParts(masterConfig, [usersConfig, imageConfig]);
+module.exports = joinParts(masterConfig, [usersConfig, imageConfig, imagesBucketConfig]);
