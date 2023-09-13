@@ -1,6 +1,6 @@
 import { AWSPartitial } from '../types';
 
-export const galleryBucketConfig: AWSPartitial = {
+export const images: AWSPartitial = {
   params: {
     default: {
       BUCKET: 'gallery-prod-ff98s87fhs',

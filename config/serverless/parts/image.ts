@@ -1,15 +1,18 @@
 import { AWSPartitial } from '../types';
 
-export const galleryConfig: AWSPartitial = {
+export const imageConfig: AWSPartitial = {
   functions: {
-    findImage: {
-      handler: 'api/gallery/lamdas/find-image.handler',
+    findimage: {
+      handler: 'api/image/lambdas/find-image.handler',
       memorySize: 128,
       events: [
         {
           httpApi: {
             path: '/image',
             method: 'get',
+            authorizer: {
+              name: 'customAuthorizer',
+            },
           },
         },
       ],
