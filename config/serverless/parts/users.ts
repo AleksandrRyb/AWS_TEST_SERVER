@@ -2,9 +2,6 @@ import { AWSPartitial } from '../types';
 
 export const usersConfig: AWSPartitial = {
   provider: {
-    environment: {
-      RANDOM: 'aefaefe',
-    },
     httpApi: {
       authorizers: {
         customAuthorizer: {

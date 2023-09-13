@@ -2,6 +2,7 @@ import './config/serverless/stage-loader';
 import type { AWS } from '@serverless/typescript';
 import { usersConfig } from './config/serverless/parts/users';
 import { getStage, joinParts } from './config/serverless/utils';
+import { imageConfig } from './config/serverless/parts/image';
 
 const CLIENT = '${param:CLIENT}';
 const SERVICE_NAME = `template-flo-sls`;
@@ -154,4 +155,4 @@ const masterConfig: AWS = {
   ],
 };
 
-module.exports = joinParts(masterConfig, [/*DELETE THIS >*/ usersConfig]);
+module.exports = joinParts(masterConfig, [usersConfig, imageConfig]);

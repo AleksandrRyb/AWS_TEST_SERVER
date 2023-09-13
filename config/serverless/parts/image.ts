@@ -1,0 +1,21 @@
+import { AWSPartitial } from '../types';
+
+export const imageConfig: AWSPartitial = {
+  functions: {
+    findimage: {
+      handler: 'api/image/lambdas/find-image.handler',
+      memorySize: 128,
+      events: [
+        {
+          httpApi: {
+            path: '/image',
+            method: 'get',
+            authorizer: {
+              name: 'customAuthorizer',
+            },
+          },
+        },
+      ],
+    },
+  },
+};
