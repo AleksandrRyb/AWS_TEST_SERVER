@@ -25,9 +25,9 @@ export const imageConfig: AWSPartitial = {
           httpApi: {
             path: '/image/add',
             method: 'post',
-            // authorizer: {
-            //   name: 'customAuthorizer',
-            // },
+            authorizer: {
+              name: 'customAuthorizer',
+            },
           },
         },
       ],

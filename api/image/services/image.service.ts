@@ -1,9 +1,16 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { s3Client } from '@services/s3';
+import { dynamoDbClient } from '@services/dynamodb';
 import { log } from '@helper/logger';
+import { UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 
+interface ImageData {
+  id: string;
+  path: string;
+  userEmail: string;
+}
 export class ImageService {
   static async findImage(searchTerm: string | undefined) {
     try {
@@ -21,22 +28,27 @@ export class ImageService {
     }
   }
 
-  static async addImages(imageIds: string[]) {
+  static async addImages(imageIds: string[], email: string) {
+    let imageData;
+
     try {
       if (imageIds.length > 10) {
         throw new Error('Big amount of images, must be at least 10');
       }
 
       for (const imageId of imageIds) {
-        await this.fetchAndSaveImageToS3(imageId);
+        imageData = await this.fetchAndSaveImageToS3(imageId);
+        imageData.userEmail = email;
+
+        await this.saveImageDataToDynamo(imageData);
       }
 
       log(JSON.stringify({ message: 'Images added successfully' }));
 
-      return {
+      return JSON.stringify({
         statusCode: 200,
-        body: JSON.stringify({ message: 'Images added successfully' }),
-      };
+        body: { message: 'Images added successfully', imageData },
+      });
     } catch (error) {
       return {
         statusCode: 422,
@@ -47,6 +59,8 @@ export class ImageService {
 
   static async fetchAndSaveImageToS3(imageId: string) {
     const apiUrl = `https://api.unsplash.com/photos/${imageId}?client_id=${process.env.UNSPLASH_ACCESS_KEY}`;
+    const bucketName = process.env.IMAGES_BUCKET_NAME;
+    const key = uuidv4();
 
     const response = await axios.get(apiUrl);
 
@@ -65,14 +79,41 @@ export class ImageService {
     const imageBuffer = Buffer.from(imageResponse.data);
 
     const s3Params = {
-      Bucket: 'images-prod-ff98s87f',
-      Key: `${uuidv4()}.${fileExtension}`,
+      Bucket: bucketName,
+      Key: `${key}.${fileExtension}`,
       Body: imageBuffer,
     };
 
     const putObjectCommand = new PutObjectCommand(s3Params);
 
     await s3Client.send(putObjectCommand);
+
+    const imageData = {
+      path: `${bucketName}/${key}.${fileExtension}`,
+      id: key,
+    };
+
+    return imageData;
+  }
+
+  static async saveImageDataToDynamo({ path, userEmail, id }: ImageData) {
+    const updateItemParams = {
+      TableName: 'Users',
+      Key: {
+        email: { S: userEmail },
+      },
+      UpdateExpression: 'SET #p = :p, #i = :i',
+      ExpressionAttributeNames: {
+        '#p': 'path',
+        '#i': 'imageId',
+      },
+      ExpressionAttributeValues: {
+        ':p': { S: path },
+        ':i': { S: id },
+      },
+    };
+
+    await dynamoDbClient.send(new UpdateItemCommand(updateItemParams));
   }
 
   static makeExtensioFromContentType(contentType: string) {
