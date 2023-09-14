@@ -1,10 +1,10 @@
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { s3Client } from '@services/s3';
 import { dynamoDbClient } from '@services/dynamodb';
 import { log } from '@helper/logger';
-import { UpdateItemCommand } from '@aws-sdk/client-dynamodb';
+import { PutItemCommand } from '@aws-sdk/client-dynamodb';
 
 interface ImageData {
   id: string;
@@ -40,14 +40,14 @@ export class ImageService {
         imageData = await this.fetchAndSaveImageToS3(imageId);
         imageData.userEmail = email;
 
-        await this.saveImageDataToDynamo(imageData);
+        await this.insertImageDataToDynamo(imageData);
       }
 
       log(JSON.stringify({ message: 'Images added successfully' }));
 
       return JSON.stringify({
         statusCode: 200,
-        body: { message: 'Images added successfully', imageData },
+        body: { message: 'Images added successfully' },
       });
     } catch (error) {
       return {
@@ -96,24 +96,17 @@ export class ImageService {
     return imageData;
   }
 
-  static async saveImageDataToDynamo({ path, userEmail, id }: ImageData) {
-    const updateItemParams = {
+  static async insertImageDataToDynamo({ path, userEmail, id }: ImageData) {
+    const imageItem = {
       TableName: 'Users',
-      Key: {
+      Item: {
+        path: { S: path },
         email: { S: userEmail },
-      },
-      UpdateExpression: 'SET #p = :p, #i = :i',
-      ExpressionAttributeNames: {
-        '#p': 'path',
-        '#i': 'imageId',
-      },
-      ExpressionAttributeValues: {
-        ':p': { S: path },
-        ':i': { S: id },
+        imageId: { S: id },
       },
     };
 
-    await dynamoDbClient.send(new UpdateItemCommand(updateItemParams));
+    await dynamoDbClient.send(new PutItemCommand(imageItem));
   }
 
   static makeExtensioFromContentType(contentType: string) {
