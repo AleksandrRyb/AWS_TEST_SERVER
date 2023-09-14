@@ -12,8 +12,8 @@ export const handler = (event, _, callback) => {
       throw new Error();
     }
 
-    const principalId = decoded.email;
-    const policy = generatePolicy(principalId, 'Allow', '*', { email: decoded.email });
+    const principalId = decoded.userId;
+    const policy = generatePolicy(principalId, 'Allow', '*', { userId: decoded.userId });
     return callback(null, policy);
   } catch (error) {
     log.error(JSON.stringify(error));

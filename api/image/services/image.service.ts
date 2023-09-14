@@ -9,7 +9,7 @@ import { PutItemCommand } from '@aws-sdk/client-dynamodb';
 interface ImageData {
   id: string;
   path: string;
-  userEmail: string;
+  userId: string;
 }
 export class ImageService {
   static async findImage(searchTerm: string | undefined) {
@@ -28,7 +28,7 @@ export class ImageService {
     }
   }
 
-  static async addImages(imageIds: string[], email: string) {
+  static async addImages(imageIds: string[], userId: string) {
     let imageData;
 
     try {
@@ -38,7 +38,7 @@ export class ImageService {
 
       for (const imageId of imageIds) {
         imageData = await this.fetchAndSaveImageToS3(imageId);
-        imageData.userEmail = email;
+        imageData.userId = userId;
 
         await this.insertImageDataToDynamo(imageData);
       }
@@ -96,13 +96,13 @@ export class ImageService {
     return imageData;
   }
 
-  static async insertImageDataToDynamo({ path, userEmail, id }: ImageData) {
+  static async insertImageDataToDynamo({ path, userId, id }: ImageData) {
     const imageItem = {
-      TableName: 'Users',
+      TableName: 'UsersTest',
       Item: {
         path: { S: path },
-        email: { S: userEmail },
-        imageId: { S: id },
+        email: { S: userId },
+        id: { S: id },
       },
     };
 

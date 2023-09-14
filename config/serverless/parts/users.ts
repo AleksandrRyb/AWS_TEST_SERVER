@@ -26,7 +26,7 @@ export const usersConfig: AWSPartitial = {
               'dynamodb:BatchGetItem',
               'dynamodb:BatchWriteItem',
             ],
-            Resource: 'arn:aws:dynamodb:*:*:table/Users',
+            Resource: ['arn:aws:dynamodb:*:*:table/UsersTest', 'arn:aws:dynamodb:*:*:table/UsersTest/index/EmailIndex'],
           },
         ],
       },
@@ -84,8 +84,12 @@ export const usersConfig: AWSPartitial = {
       usersTable: {
         Type: 'AWS::DynamoDB::Table',
         Properties: {
-          TableName: 'Users',
+          TableName: 'UsersTest',
           AttributeDefinitions: [
+            {
+              AttributeName: 'id',
+              AttributeType: 'S',
+            },
             {
               AttributeName: 'email',
               AttributeType: 'S',
@@ -93,7 +97,7 @@ export const usersConfig: AWSPartitial = {
           ],
           KeySchema: [
             {
-              AttributeName: 'email',
+              AttributeName: 'id',
               KeyType: 'HASH',
             },
           ],
@@ -101,6 +105,24 @@ export const usersConfig: AWSPartitial = {
             ReadCapacityUnits: 1,
             WriteCapacityUnits: 1,
           },
+          GlobalSecondaryIndexes: [
+            {
+              IndexName: 'EmailIndex',
+              KeySchema: [
+                {
+                  AttributeName: 'email',
+                  KeyType: 'HASH',
+                },
+              ],
+              Projection: {
+                ProjectionType: 'ALL',
+              },
+              ProvisionedThroughput: {
+                ReadCapacityUnits: 1,
+                WriteCapacityUnits: 1,
+              },
+            },
+          ],
         },
       },
     },

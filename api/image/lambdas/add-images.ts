@@ -3,7 +3,7 @@ import { ImageService } from '../services/image.service';
 
 export const handler = async (event: APIGatewayEvent): Promise<any> => {
   const imageIds: string[] = JSON.parse(event.body || '').imageIds;
-  const email = event.requestContext.authorizer?.lambda.email;
+  const userId = event.requestContext.authorizer?.lambda.userId;
 
-  return ImageService.addImages(imageIds, email);
+  return ImageService.addImages(imageIds, userId);
 };
