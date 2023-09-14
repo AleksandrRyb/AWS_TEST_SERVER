@@ -99,6 +99,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.408.0",
+    "@aws-sdk/client-s3": "^3.410.0",
     "@floteam/errors": "1.0.8",
     "@redtea/format-axios-error": "2.1.1",
     "@types/jsonwebtoken": "^9.0.2",

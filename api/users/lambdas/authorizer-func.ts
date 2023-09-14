@@ -1,5 +1,6 @@
 import { APIGatewayAuthorizerResult } from 'aws-lambda';
 import { verifyToken } from '@helper/auth/verify-token';
+import { log } from '@helper/logger';
 
 export const handler = (event, _, callback) => {
   try {
@@ -11,11 +12,12 @@ export const handler = (event, _, callback) => {
       throw new Error();
     }
 
-    const principalId = decoded.email;
-    const policy = generatePolicy(principalId, 'Allow', '*', {});
-    return policy;
+    const principalId = decoded.userId;
+    const policy = generatePolicy(principalId, 'Allow', '*', { userId: decoded.userId });
+    return callback(null, policy);
   } catch (error) {
-    callback('Unauthorized');
+    log.error(JSON.stringify(error));
+    return callback('Unauthorized');
   }
 };
 

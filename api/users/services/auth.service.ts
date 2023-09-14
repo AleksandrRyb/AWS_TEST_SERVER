@@ -1,14 +1,16 @@
-import { dynamoDbClient } from '@services/dynamodb';
-import { PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { PutItemCommand, GetItemCommand, QueryCommand, QueryOutput } from '@aws-sdk/client-dynamodb';
+import { APIGatewayProxyResult } from 'aws-lambda';
 import * as bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import { dynamoDbClient } from '@services/dynamodb';
 import { AuthValidatorService } from './auth-validator.service';
 import { isObjectEmpty } from '@helper/object/isEmpty';
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { generateToken } from '@helper/auth/generate-token';
 
 export class AuthService {
   static async signup(body: { email: string; password: string }): Promise<APIGatewayProxyResult> {
     const errors = AuthValidatorService.validateSignup(body);
+    const userId = uuidv4();
 
     if (!isObjectEmpty(errors)) {
       return {
@@ -17,28 +19,33 @@ export class AuthService {
       };
     }
 
-    const getItemCommand = new GetItemCommand({
-      TableName: 'Users',
-      Key: {
-        email: { S: body.email },
+    const queryParams = {
+      TableName: 'UsersTest',
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': { S: body.email },
       },
-    });
+    };
+
+    const queryCommand = new QueryCommand(queryParams);
 
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(body.password, saltRounds);
 
     const putItemCommand = new PutItemCommand({
-      TableName: 'Users',
+      TableName: 'UsersTest',
       Item: {
+        id: { S: userId },
         email: { S: body.email },
         hashedPasswords: { S: hashedPassword },
       },
     });
 
     try {
-      const { Item: isUserExisted } = await dynamoDbClient.send(getItemCommand);
+      const users = await dynamoDbClient.send(queryCommand);
 
-      if (isUserExisted) {
+      if (users.Items && users.Items.length > 0) {
         return {
           statusCode: 401,
           body: JSON.stringify({ errors: { user: 'User with given email is existed' } }),
@@ -49,12 +56,14 @@ export class AuthService {
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: 'User created successfully' }),
+        body: JSON.stringify({
+          message: 'User created successfully',
+        }),
       };
     } catch (error) {
       return {
         statusCode: 401,
-        body: JSON.stringify({ message: 'Error creating user', error }),
+        body: JSON.stringify({ message: 'Error creating user', error: error.message }),
       };
     }
   }
@@ -69,24 +78,29 @@ export class AuthService {
       };
     }
 
-    const getItemCommand = new GetItemCommand({
-      TableName: 'Users',
-      Key: {
-        email: { S: body.email },
+    const queryParams = {
+      TableName: 'UsersTest',
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': { S: body.email },
       },
-    });
+    };
+
+    const queryCommand = new QueryCommand(queryParams);
 
     try {
-      const { Item: user } = await dynamoDbClient.send(getItemCommand);
-
-      if (!user) {
+      const foundUsers = await dynamoDbClient.send(queryCommand);
+      if (foundUsers.Items && foundUsers.Items.length < 1) {
         return {
           statusCode: 401,
           body: JSON.stringify({ message: 'User not found' }),
         };
       }
 
-      const isPasswordValid = await bcrypt.compare(body.password, user.hashedPasswords.S as string);
+      const user = foundUsers.Items && foundUsers.Items[0];
+
+      const isPasswordValid = await bcrypt.compare(body.password, user?.hashedPasswords.S as string);
 
       if (!isPasswordValid) {
         return {
@@ -95,7 +109,7 @@ export class AuthService {
         };
       }
 
-      const token = generateToken({ email: body.email });
+      const token = generateToken({ userId: user?.id.S });
 
       return {
         statusCode: 200,

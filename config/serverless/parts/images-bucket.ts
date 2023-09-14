@@ -1,9 +1,9 @@
 import { AWSPartitial } from '../types';
 
-export const images: AWSPartitial = {
+export const imagesBucketConfig: AWSPartitial = {
   params: {
     default: {
-      BUCKET: 'gallery-prod-ff98s87fhs',
+      BUCKET: 'images-prod-ff98s87f',
     },
   },
   provider: {
@@ -12,8 +12,8 @@ export const images: AWSPartitial = {
         statements: [
           {
             Effect: 'Allow',
-            Action: ['s3:*'],
-            Resource: ['arn:aws:s3:::${param:BUCKET}'],
+            Action: ['s3:GetObject', 's3:PutObject'],
+            Resource: ['arn:aws:s3:::${param:BUCKET}', 'arn:aws:s3:::${param:BUCKET}/*'],
           },
         ],
       },

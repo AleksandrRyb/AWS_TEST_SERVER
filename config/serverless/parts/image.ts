@@ -17,5 +17,20 @@ export const imageConfig: AWSPartitial = {
         },
       ],
     },
+    addimages: {
+      handler: 'api/image/lambdas/add-images.handler',
+      memorySize: 256,
+      events: [
+        {
+          httpApi: {
+            path: '/image/add',
+            method: 'post',
+            authorizer: {
+              name: 'customAuthorizer',
+            },
+          },
+        },
+      ],
+    },
   },
 };
