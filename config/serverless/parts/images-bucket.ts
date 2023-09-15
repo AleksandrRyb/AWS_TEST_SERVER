@@ -20,20 +20,24 @@ export const imagesBucketConfig: AWSPartitial = {
     },
   },
   functions: {
-    // prefix "trigger" for S3, SQS, SNS, EventBridge, etc, Lambda triggers
-    // triggerS3Example: {
-    //   handler: 'api/feature/handler.feature',
-    //   description: 'Example of Lambda function with S3 trigger',
-    //   timeout: 28,
-    //   events: [
-    //     {
-    //       s3: {
-    //         bucket: '${param:BUCKET}',
-    //         event: 's3:ObjectCreated:*',
-    //       },
-    //     },
-    //   ],
-    // },
+    triggerImageResize: {
+      handler: 'api/image/lambdas/trigger-resize-image.handler',
+      description: 'Lambda for resizing images on uploads',
+      events: [
+        {
+          s3: {
+            bucket: '${param:BUCKET}',
+            event: 's3:ObjectCreated:*',
+            existing: true,
+            rules: [
+              {
+                prefix: 'uploads/',
+              },
+            ],
+          },
+        },
+      ],
+    },
   },
   resources: {
     Resources: {
