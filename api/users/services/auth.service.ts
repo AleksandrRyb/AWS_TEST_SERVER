@@ -1,4 +1,4 @@
-import { PutItemCommand, GetItemCommand, QueryCommand, QueryOutput } from '@aws-sdk/client-dynamodb';
+import { PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,6 +6,7 @@ import { dynamoDbClient } from '@services/dynamodb';
 import { AuthValidatorService } from './auth-validator.service';
 import { isObjectEmpty } from '@helper/object/isEmpty';
 import { generateToken } from '@helper/auth/generate-token';
+import { TABLES, INDEXES } from '@constants/index';
 
 export class AuthService {
   static async signup(body: { email: string; password: string }): Promise<APIGatewayProxyResult> {
@@ -20,8 +21,8 @@ export class AuthService {
     }
 
     const queryParams = {
-      TableName: 'UsersTest',
-      IndexName: 'EmailIndex',
+      TableName: TABLES.USERS_TEST,
+      IndexName: INDEXES.EMAIL_INDEX,
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': { S: body.email },
@@ -34,7 +35,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(body.password, saltRounds);
 
     const putItemCommand = new PutItemCommand({
-      TableName: 'UsersTest',
+      TableName: TABLES.USERS_TEST,
       Item: {
         id: { S: userId },
         email: { S: body.email },
@@ -79,8 +80,8 @@ export class AuthService {
     }
 
     const queryParams = {
-      TableName: 'UsersTest',
-      IndexName: 'EmailIndex',
+      TableName: TABLES.USERS_TEST,
+      IndexName: INDEXES.EMAIL_INDEX,
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': { S: body.email },
