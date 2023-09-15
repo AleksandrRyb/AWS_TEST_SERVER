@@ -7,6 +7,7 @@ import { log } from '@helper/logger';
 import { PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { getObjectBuffer, getResizdObjectBuffer } from '@helper/media';
 import { Readable } from 'stream';
+import { TABLES } from '@constants/tables';
 
 interface ImageData {
   id: string;
@@ -137,7 +138,7 @@ export class ImageService {
 
   static async insertImageDataToDynamo({ path, userId, id }: ImageData) {
     const imageItem = {
-      TableName: 'UsersTest',
+      TableName: TABLES.USERS_TEST,
       Item: {
         path: { S: path },
         email: { S: userId },
