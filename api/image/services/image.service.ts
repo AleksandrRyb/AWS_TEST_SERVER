@@ -80,7 +80,7 @@ export class ImageService {
 
     const s3Params = {
       Bucket: bucketName,
-      Key: `${key}.${fileExtension}`,
+      Key: `uploads/${key}.${fileExtension}`,
       Body: imageBuffer,
     };
 
@@ -89,7 +89,7 @@ export class ImageService {
     await s3Client.send(putObjectCommand);
 
     const imageData = {
-      path: `${bucketName}/${key}.${fileExtension}`,
+      path: `${bucketName}/uploads/${key}.${fileExtension}`,
       id: key,
     };
 
