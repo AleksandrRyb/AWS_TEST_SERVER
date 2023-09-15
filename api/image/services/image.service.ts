@@ -1,10 +1,12 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { s3Client } from '@services/s3';
 import { dynamoDbClient } from '@services/dynamodb';
 import { log } from '@helper/logger';
 import { PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { getObjectBuffer, getResizdObjectBuffer } from '@helper/media';
+import { Readable } from 'stream';
 
 interface ImageData {
   id: string;
@@ -54,6 +56,43 @@ export class ImageService {
         statusCode: 422,
         body: JSON.stringify({ errors: { file: error.message } }),
       };
+    }
+  }
+
+  static async triggerResizeImage(records) {
+    const width = 250;
+    const height = 512;
+
+    for (const record of records) {
+      try {
+        const bucket = record.s3.bucket.name;
+        const file = record.s3.object.key;
+
+        const getObjectParams = { Bucket: bucket, Key: file };
+
+        const getObjectCommand = new GetObjectCommand(getObjectParams);
+        const responseBody = (await s3Client.send(getObjectCommand)).Body;
+
+        const imageBuffer = await getObjectBuffer(responseBody as Readable);
+
+        const resizedImageBuffer = await getResizdObjectBuffer(imageBuffer, width, height);
+
+        const [filePath, fileExtension] = file.split('.');
+        const fileKey = filePath.split('/')[1];
+
+        const s3Params = {
+          Bucket: bucket,
+          Key: `resized/${fileKey}_SC.${fileExtension}`,
+          Body: resizedImageBuffer,
+        };
+
+        const putObjectCommand = new PutObjectCommand(s3Params);
+        await s3Client.send(putObjectCommand);
+
+        log(JSON.stringify({ message: 'Image Resize successfully done' }));
+      } catch (error) {
+        error(JSON.stringify({ error: error.message }));
+      }
     }
   }
 

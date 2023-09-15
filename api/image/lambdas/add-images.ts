@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayEvent } from 'aws-lambda';
 import { ImageService } from '../services/image.service';
 
 export const handler = async (event: APIGatewayEvent): Promise<any> => {
